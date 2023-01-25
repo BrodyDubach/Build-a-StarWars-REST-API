@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, Character, Planet
 #from models import Person
 
 app = Flask(__name__)
@@ -36,14 +36,39 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+@app.route('/user', methods=['POST'])
+def create_user():
+    user = User()
+    body = request.get_json()
+    user.email = body["email"]
+    user.password = body["password"]
+    user.is_active = body["is_active"]
+    db.session.add(user)
+    db.session.commit()
+    return jsonify(user.email), 200
+
+@app.route('/characters', methods=["GET"])
+def get_characters():
+    characters = Character.query.all()
+    all_characters = list(map(lambda x : x.serialize(), characters))
+    return jsonify(all_characters), 200
+
+app.route('/characters/<int:character_id>', methods = ["GET"])
+def get_character():
+    character = Character.query.get(character_id)
+    return jsonify(character), 200
+    
+app.route('/planets/<int:planet_id>', methods = ["GET"])
+def get_planet():
+    planet = Planet.query.get(planet_id)
+    return jsonify(planet), 200
+
+
 @app.route('/user', methods=['GET'])
-def handle_hello():
-
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
-
-    return jsonify(response_body), 200
+def get_users():
+    users = User.query.all()
+    all_users = list(map(lambda x : x.serialize(), users))
+    return jsonify(all_users), 200
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
