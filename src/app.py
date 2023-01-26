@@ -70,6 +70,45 @@ def get_users():
     all_users = list(map(lambda x : x.serialize(), users))
     return jsonify(all_users), 200
 
+@app.route('/user', methods=['GET'])
+def get_favorites():
+    favorites = Favorites.query.all()
+    all_favorites = list(map(lambda x: x.serialize(), favorites))
+    return jsonify(all_favorites), 200
+
+@app.route('/favorites/planets/<int:planet_id>', methods=['POST'])
+def create_favorites_planet(planet_id):
+    favorite_planet = Favorites(user_id = request.get_json()['user_id'], favorite_planet_id = planet_id)
+    db.session.add(favorite_planet)
+    db.session.commit()
+    return jsonify('Planet has been added to Favorites!'), 201
+
+@app.route('/favorites/characters/<int:character_id>', methods=['POST'])
+def create_favorites_character(character_id):
+    favorite_planet = Favorites(user_id = request.get_json()['user_id'], favorite_character_id = character_id)
+    db.session.add(favorite_character)
+    db.session.commit()
+    return jsonify('Character has been added to Favorites!'), 201
+
+@app.route('/user/<int:user_id>/favorites/planet/<int:planet_id>', methods=['DELETE'])
+def delete_favorites_planet(user_id,planet_id):
+    favorite_user_planet = Favorites.query.filter_by(user_id = user_id,favorite_planet_id = planet_id).first()
+    if favorite_user_planet is None:
+        return jsonify('Could not find users favorite planet!')
+    db.session.delete(favorite_user_planet) 
+    db.session.commit()
+    return jsonify('Successfully deleted!'), 200
+
+@app.route('/user/<int:user_id>/favorites/character/<int:character_id>', methods=['DELETE'])
+def delete_favorites_character(user_id,character_id):
+    favorite_user_character = Favorites.query.filter_by(user_id = user_id,favorite_character_id = character_id).first()
+    if favorite_user_character is None:
+        return jsonify('Could not find users favorite character!')
+    db.session.delete(favorite_user_character) 
+    db.session.commit()
+    return jsonify('Successfully deleted!'), 200
+
+
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
